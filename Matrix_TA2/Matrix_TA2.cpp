@@ -2,24 +2,73 @@
 //
 
 #include "pch.h"
-#include <omp.h>
+#include "time.h"
 #include <iostream>
 #define N 3
 #define M 3
 
 using namespace std;
 
-int main()
-{
-	int M1[N][M] = { {3,4,5},{6,7,8},{6,2,2} };
-	int M2[N][M] = { {1,0,1},{0,1,0},{1,0,1} };
 
-	getSuma(M1,M2);
-	getResta(M1, M2);
+void printResult(int Matrix[N][M]){
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < M; j++) cout << Matrix[i][j] << " ";
+		cout << endl;
+	}
+	cout << endl;
+}
+
+void producto_cruz_matrices(int M1[N][N], int M2[N][N]) {
+	int result[N][N] = { {0,0,0},{0,0,0},{0,0,0} };
+#pragma omp parallel num_threads(N*N)
+	{
+		int id = omp_get_thread_num();
+		int i = id % N;
+		int j = id / N;
+		// ...
+	}
+	cout << "Resultado Producto Cruz:" << endl;
+	printResult(result);
+}
+
+
+void producto_punto_matrices(int M1[N][M], int M2[N][M]) {
+	int result[N][M] = { {0,0,0},{0,0,0},{0,0,0} };
+	clock_t startPRO_P= clock();
+	
+#pragma omp parallel num_threads(N*N)
+	{
+		int id = omp_get_thread_num();
+		int i = id % N;
+		int j = id / N;
+		for (int p = 0; p < N; p++) result[i][j] += M1[i][p] * M2[p][j];
+	}
+	clock_t timeElapsed = (clock()-startPRO_P);
+	unsigned msElapsed = timeElapsed;
+	cout << "Resultado Producto Punto:       DURACION "<< msElapsed<< " ms"<< endl;
+	printResult(result);
+}
+
+void producto_numero_escalar(int M1[N][M], double E) {
+	int result[N][N] = { {0,0,0},{0,0,0},{0,0,0} };
+	clock_t startPRO= clock();
+	
+#pragma omp parallel num_threads(N*M)
+	{
+		int id = omp_get_thread_num();
+		int i = id % N;
+		int j = id / M;
+		result[i][j] = M1[i][j] * E;
+	}
+	clock_t timeElapsed = (clock()-startPRO);
+	unsigned msElapsed = timeElapsed;
+	cout << "Resultado escalar por matriz:       DURACION "<< msElapsed<< " ms"<< endl;
+	printResult(result);
 }
 
 void getSuma(int M1[N][M],int M2[N][M]) {
 	int result[N][M] = { {0,0,0}, {0,0,0}, {0,0,0} };
+	clock_t startSUM= clock();
 	
 #pragma omp parallel num_threads(N*M)
 	{
@@ -29,12 +78,15 @@ void getSuma(int M1[N][M],int M2[N][M]) {
 		result[i][j] = M1[i][j] + M2[i][j];
 	}
 
-	cout<<"Resultado de suma" <<endl;
+	clock_t timeElapsed = (clock()-startSUM);
+	unsigned msElapsed = timeElapsed;
+	cout<<"Resultado de suma     DURACION "<< msElapsed<< " ms" <<endl;
 	printResult(result);
 }
 
 void getResta(int M1[N][M], int M2[N][M]) {
 	int result[N][M] = { {0,0,0},{0,0,0},{0,0,0} };
+	clock_t startDIFF= clock();
 
 #pragma omp parallel num_threads(N*M)
 	{
@@ -43,52 +95,20 @@ void getResta(int M1[N][M], int M2[N][M]) {
 		int j = id / M;
 		result[i][j] = M1[i][j] - M2[i][j];
 	}
-	cout << "Resultado Resta:" << endl;
+	clock_t timeElapsed = (clock()-startDIFF);
+	unsigned msElapsed = timeElapsed;
+	cout << "Resultado Resta:   DURACION "<< msElapsed<< " ms" << endl;
 	printResult(result);
 }
 
+int main()
+{
+	int M1[N][M] = { {3,4,5},{6,7,8},{6,2,2} };
+	int M2[N][M] = { {1,0,1},{0,1,0},{1,0,1} };
 
-void multi_escalar(int A[N][N], double E) {
-	int C[N][N] = { {0,0,0},{0,0,0},{0,0,0} };
-#pragma omp parallel num_threads(N*N)
-	{
-		int id = omp_get_thread_num();
-		int i = id % N;
-		int j = id / N;
-		C[i][j] = A[i][j] * E;
-	}
-	cout << "Resultado Multi. Escalar:" << endl;
-	printResult(C);
-}
-void producto_punto(int A[N][N], int B[N][N]) {
-	int C[N][N] = { {0,0,0},{0,0,0},{0,0,0} };
-#pragma omp parallel num_threads(N*N)
-	{
-		int id = omp_get_thread_num();
-		int i = id % N;
-		int j = id / N;
-		for (int p = 0; p < N; p++) C[i][j] += A[i][p] * B[p][j];
-	}
-	cout << "Resultado Producto Punto:" << endl;
-	printResult(C);
-}
-void producto_cruz(int A[N][N], int B[N][N]) {
-	int C[N][N] = { {0,0,0},{0,0,0},{0,0,0} };
-#pragma omp parallel num_threads(N*N)
-	{
-		int id = omp_get_thread_num();
-		int i = id % N;
-		int j = id / N;
-		// ...
-	}
-	cout << "Resultado Producto Cruz:" << endl;
-	printResult(C);
-}
-
-void printResult(int Matrix[N][M]){
-	for (int i = 0; i < N; i++) {
-		for (int j = 0; j < M; j++) cout << Matrix[i][j] << " ";
-		cout << endl;
-	}
-	cout << endl;
+	getSuma(M1,M2);
+	getResta(M1, M2);
+	producto_numero_escalar(M1,4.5);
+	producto_punto_matrices(M1, M2);
+	
 }
