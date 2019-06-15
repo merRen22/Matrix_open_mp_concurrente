@@ -31,7 +31,7 @@ void producto_cruz_matrices(int M1[N][M], int M2[N][M]) {
 			result[i][j] = result[i][j] + M1[i][k]*M2[k][j];
 		}
 	}
-	clock_t timeElapsed = (clock() - startPRO_C);
+	clock_t timeElapsed = (clock() - startPRO_C);   
 	unsigned msElapsed = timeElapsed;
 	cout << "Resultado Producto Cruz:       DURACION " << msElapsed << " ms" << endl;
 	printResult(result);
